@@ -1,0 +1,605 @@
+================================================================================
+                        MEZGEBU PHONE - SITE SPECIFICATION
+                              Version 1.0.0
+                         Last Updated: 2024-12-28
+================================================================================
+
+================================================================================
+1. PROJECT OVERVIEW
+================================================================================
+
+Application Name: MEZGEBU PHONE
+
+Mission Statement:
+A sovereign, premium progressive web application that provides calling, SMS, 
+and credit management functionality through a beautiful dark interface. The app
+acts as a frontend layer that communicates with backend services via a secure
+proxy, ensuring no direct exposure of third-party APIs or credentials.
+
+Scope - Features Included:
+- User authentication via proxy
+- Real-time balance display
+- Voice call initiation and status tracking
+- Call history viewing
+- SMS composition and sending
+- Credit purchasing (VISA and Cryptocurrency)
+- PWA installation and offline shell
+
+Scope - Features Excluded:
+- Direct Fanytel API integration (all via proxy)
+- User registration (handled externally)
+- Video calling
+- Group messaging
+- Contact management/sync
+
+================================================================================
+2. ARCHITECTURE
+================================================================================
+
+PWA Frontend Framework:
+- Framework: React 18 with TypeScript
+- Build Tool: Vite
+- Styling: Tailwind CSS with custom design system
+- State Management: React useState/useContext (lightweight, no Redux needed)
+- Routing: React Router DOM
+- Rationale: React provides component-based architecture ideal for the modular
+  UI. Vite ensures fast development and optimized production builds. Tailwind
+  enables rapid styling with design system consistency.
+
+Backend Proxy Design:
+
+Routes:
+  POST /auth/start      - Initiates session with Fanytel using server credentials
+  GET  /balance         - Retrieves current account balance
+  POST /call/start      - Initiates a call to specified number
+  GET  /call/status     - Polls current call status
+  GET  /history         - Retrieves call/SMS history
+  POST /sms/send        - Sends SMS message
+  GET  /payments/visa   - Redirects to Fanytel payment (in branded webview)
+  GET  /payments/crypto - Returns crypto wallet URL and QR image URL
+
+Auth Flow:
+  1. Client sends POST /auth/start (no credentials in request body)
+  2. Proxy reads FANYTEL_EMAIL and FANYTEL_PASSWORD from .env
+  3. Proxy authenticates with Fanytel API
+  4. Proxy stores session cookies server-side
+  5. Proxy returns session token to client
+  6. Client includes token in subsequent requests
+  7. Proxy attaches Fanytel cookies to forwarded requests
+
+Session Handling:
+  - Sessions expire after 24 hours of inactivity
+  - Automatic refresh on valid activity
+  - Invalid sessions return 401, client redirects to welcome screen
+
+Error Strategy:
+  - All errors return standardized JSON: { error: string, code: string }
+  - HTTP status codes: 400 (bad request), 401 (unauthorized), 500 (server error)
+  - Client displays user-friendly error messages via toast notifications
+
+Environment Variables:
+  FANYTEL_BASE         - Base URL for Fanytel API (e.g., https://webdialer.fanytel.com/)
+  FANYTEL_EMAIL        - Fanytel account email
+  FANYTEL_PASSWORD     - Fanytel account password
+  CRYPTO_WALLET_URL    - URL for cryptocurrency payment wallet
+  CRYPTO_QR_IMAGE_URL  - URL for cryptocurrency QR code image
+  SESSION_SECRET       - Secret for signing session tokens
+  PORT                 - Server port (default: 3001)
+
+Network Diagram (Textual):
+  ┌─────────────┐     HTTPS      ┌─────────────┐     HTTPS      ┌─────────────┐
+  │   Client    │ ─────────────► │   Proxy     │ ─────────────► │   Fanytel   │
+  │   (PWA)     │ ◄───────────── │   Server    │ ◄───────────── │   API       │
+  └─────────────┘                └─────────────┘                └─────────────┘
+        │                              │
+        │ Session Token                │ Fanytel Cookies
+        └──────────────────────────────┘ (stored server-side)
+
+================================================================================
+3. SECURITY MODEL
+================================================================================
+
+Secret Management:
+- All sensitive credentials stored in server-side .env file
+- .env file excluded from version control via .gitignore
+- No secrets exposed in client bundle, HTML, or network requests
+- Environment variables loaded at server startup only
+
+Client-Network Restrictions:
+- Client NEVER calls Fanytel directly
+- All API requests route through /api/* proxy endpoints
+- CSP headers prevent external API calls
+- CORS configured to allow only known origins
+
+Token/Session Handling:
+- JWT tokens signed with SESSION_SECRET
+- Tokens include: userId, issuedAt, expiresAt
+- Token lifetime: 24 hours
+- Refresh: automatic on valid requests within 1 hour of expiry
+- Storage: httpOnly cookie (not localStorage)
+
+Logging and PII Handling:
+- Logs include: timestamps, route, response status, anonymized user ID
+- Logs EXCLUDE: phone numbers (masked as +1 *** ****), message content
+- Log retention: 30 days
+- No analytics tracking without explicit consent
+
+================================================================================
+4. UI/UX DESIGN LANGUAGE - WICKED FAYA BOMBASTIK
+================================================================================
+
+Color Tokens:
+  --background:           #0a0a0a (deep black)
+  --background-secondary: #141414 (charcoal)
+  --background-tertiary:  #1f1f1f (elevated surface)
+  --foreground:           #ffffff (pure white)
+  --primary:              #0066ff (electric blue)
+  --primary-glow:         #3385ff (lighter blue for hover/glow)
+  --secondary:            #333333 (matte gray)
+  --muted:                #262626 (subtle backgrounds)
+  --muted-foreground:     #a6a6a6 (subtle text)
+  --destructive:          #dc2626 (error red)
+  --border:               #2e2e2e (subtle borders)
+
+Shadow Tokens:
+  --shadow-signature: #84879a
+  
+  Usage across components:
+  - Buttons: box-shadow with signature color, 20px blur, 0.4 opacity
+  - Frames/Cards: box-shadow with signature color, 20px blur, 0.4 opacity
+  - Icons: drop-shadow filter with signature color, 8px blur, 0.5 opacity
+  - Image placeholders: box-shadow with signature color, 20px blur, 0.4 opacity
+  - Large elements: extended shadow with 40px blur, 0.5 opacity
+
+Typography:
+  Font Family: 'DM Sans', system-ui, sans-serif
+  
+  Weights:
+  - Bold (700): Titles, headings, primary buttons
+  - SemiBold (600): Navigation, labels
+  - Medium (500): Body text, secondary labels
+  - Regular (400): Descriptions, helper text
+  
+  Sizes:
+  - 3xl (30px): Hero title
+  - 2xl (24px): Section headings, balance display
+  - xl (20px): Page titles
+  - lg (18px): Large buttons
+  - base (16px): Body text, standard buttons
+  - sm (14px): Labels, secondary text
+  - xs (12px): Captions, timestamps
+  
+  Tracking:
+  - Tight (-0.02em): Headlines
+  - Normal (0): Body text
+  - Wide (0.05em): Labels, uppercase text
+
+Components - States:
+
+  PRIMARY BUTTON:
+    Default:  bg-primary, text-white, shadow-signature
+    Hover:    bg-primary-glow, translateY(-1px)
+    Focus:    ring-2 ring-primary ring-offset-2 ring-offset-background
+    Active:   translateY(0), scale(0.98)
+    Disabled: opacity-50, cursor-not-allowed
+
+  SECONDARY BUTTON:
+    Default:  bg-secondary, text-white, shadow-signature
+    Hover:    bg-secondary/80, translateY(-1px)
+    Focus:    ring-2 ring-secondary ring-offset-2
+    Active:   translateY(0)
+    Disabled: opacity-50
+
+  CARD/FRAME:
+    Default:  bg-card, border-border/30, shadow-signature, rounded-xl
+    Hover:    bg-secondary/30 (if interactive)
+    
+  TAB ITEM:
+    Default:  text-muted-foreground
+    Hover:    text-foreground, bg-secondary/30
+    Active:   text-primary, bg-primary/10
+
+  DIAL PAD BUTTON:
+    Default:  bg-secondary/60, text-white, shadow-signature
+    Hover:    bg-secondary/80, scale(1.05)
+    Active:   scale(0.95)
+    Call:     bg-primary (green would be destructive context)
+    End:      bg-destructive
+
+  MODAL:
+    Overlay:  bg-background/80, backdrop-blur
+    Surface:  bg-card, border-border, shadow-signature-lg, rounded-t-2xl
+    Close:    white X icon with shadow
+
+Iconography:
+  Style: Lucide React icons
+  Color: White (#ffffff) for all icons
+  Shadow: drop-shadow filter with #84879a
+  Size: 20px (default), 16px (small), 24px (large), 28px (hero)
+
+Accessibility Rules:
+  - Minimum contrast ratio: 4.5:1 (WCAG AA)
+  - All interactive elements have visible focus states
+  - Touch targets minimum 44x44px
+  - Semantic HTML (button, nav, main, header, footer)
+  - ARIA labels for icon-only buttons
+  - Screen reader announcements for state changes
+
+================================================================================
+5. PAGE AND COMPONENT INVENTORY
+================================================================================
+
+HOME PAGE (Welcome Screen):
+  Layout:
+  - Centered vertical flex container
+  - Logo placeholder (dashed border frame, 128x128px)
+  - Title "MEZGEBU PHONE" (3xl, bold)
+  - Subtitle (muted-foreground)
+  - Terms checkbox with label
+  - START button (hero variant, full width max 320px)
+  - Footer text (secure messaging)
+  
+  Behaviors:
+  - START disabled until checkbox checked
+  - START shows loading spinner during auth
+  - On success: transition to main app shell
+  - On error: toast notification, reset button state
+
+MAIN APP SHELL:
+  Header: Title "MEZGEBU PHONE", centered
+  Tab Bar: CALL | HISTORY | SMS | ACCOUNT (horizontal, equal width)
+  Content Area: Scrollable, full height minus header/footer
+  Footer: Redundant nav (CALL | HISTORY | SMS icons)
+
+CALL TAB:
+  Components:
+  - BalanceCard (top, full width)
+  - Number display (frame-glossy, centered text)
+  - Recent calls quick access (horizontal scroll)
+  - Dial pad grid (3x4, circular buttons)
+  - Action row (delete, call/end, spacer)
+  
+  Dial Pad Layout:
+    [1]   [2 ABC]  [3 DEF]
+    [4 GHI] [5 JKL] [6 MNO]
+    [7 PQRS] [8 TUV] [9 WXYZ]
+    [*]     [0 +]   [#]
+  
+  Interaction Rules:
+  - Digit press appends to number
+  - Delete removes last digit
+  - Call initiates when number length > 0
+  - During call: dial pad disabled, end button shown
+  - Recent calls: tap to populate dial pad
+
+HISTORY TAB:
+  List Structure:
+  - Each item: icon (type), number, timestamp, duration
+  - Icons: PhoneIncoming (blue), PhoneOutgoing (white), PhoneMissed (red)
+  - Grouped by date (Today, Yesterday, older dates)
+  
+  Filters: (future enhancement)
+  - All, Incoming, Outgoing, Missed
+  
+  Empty State:
+  - Phone icon (large, muted)
+  - "No call history yet" text
+
+SMS TAB:
+  List Structure:
+  - Each item: number, message preview (2 lines), timestamp, sent/received badge
+  
+  New SMS Modal:
+  - Triggered by "New SMS" button
+  - Fields: To (tel input), Message (textarea)
+  - Send button (primary, full width)
+  - Close X button (top right)
+  
+  Validation:
+  - To: required, valid phone format
+  - Message: required, max 160 characters
+  
+  Send Flow:
+  - Show loading state
+  - On success: close modal, show success toast
+  - On error: show error toast, keep modal open
+
+ACCOUNT TAB:
+  Layout:
+  - Title "Buy Credits"
+  - 2-column grid: VISA | CRYPTO buttons
+  - QR code placeholder (centered, 192x192px frame)
+  - Info card (payment timing notes)
+  
+  VISA Flow:
+  - Opens proxy route in in-app webview
+  - Webview has MEZGEBU header (no Fanytel branding)
+  
+  CRYPTO Flow:
+  - Opens CRYPTO_WALLET_URL in new tab
+  - QR code displays from CRYPTO_QR_IMAGE_URL
+
+FOOTER NAVIGATION:
+  - Three items: CALL, HISTORY, SMS
+  - Icons with labels below
+  - Active state matches current tab
+  - Tapping switches tab (same as main nav)
+
+================================================================================
+6. FUNCTIONAL FLOWS (Step-by-Step)
+================================================================================
+
+AUTH FLOW:
+  1. User loads app, sees WelcomeScreen
+  2. User checks "Click to accept our terms" checkbox
+  3. START button becomes enabled
+  4. User taps START
+  5. Button shows loading spinner, text "Connecting..."
+  6. Frontend POST /auth/start (no body)
+  7. Proxy reads credentials from .env
+  8. Proxy authenticates with Fanytel
+  9. Proxy returns { sessionToken: "..." }
+  10. Frontend stores token (httpOnly cookie)
+  11. Frontend transitions to main app shell
+  12. Toast: "Welcome to MEZGEBU PHONE"
+
+BALANCE RETRIEVAL:
+  1. App shell mounts
+  2. Frontend GET /balance (with session token)
+  3. Proxy forwards to Fanytel /balance endpoint
+  4. Proxy returns { amount: "$0.06" }
+  5. BalanceCard displays amount
+  6. Poll every 60 seconds for updates
+
+CALL INITIATION:
+  1. User enters number via dial pad
+  2. User taps call button (green phone)
+  3. Frontend POST /call/start { toNumber: "+15550123" }
+  4. Proxy initiates call via Fanytel
+  5. Proxy returns { callId: "...", status: "initiating" }
+  6. UI: dial pad disabled, end button shown
+  7. Frontend polls GET /call/status?callId=...
+  8. UI updates: "Calling...", "Ringing...", "Connected"
+  9. User taps end button
+  10. Frontend POST /call/end { callId }
+  11. UI resets to dial pad
+
+HISTORY RETRIEVAL:
+  1. User taps HISTORY tab
+  2. Frontend GET /history
+  3. Proxy returns array of call/SMS records
+  4. UI renders list with animations (staggered fade-in)
+  5. Tapping item triggers callback to CALL tab
+
+SMS SENDING:
+  1. User taps "New SMS" button
+  2. Modal slides up
+  3. User enters To number
+  4. User enters Message text
+  5. User taps Send
+  6. Button shows loading state
+  7. Frontend POST /sms/send { to, message }
+  8. Proxy forwards to Fanytel SMS endpoint
+  9. On success: modal closes, success toast
+  10. On error: error toast, modal stays open
+
+BUY CREDITS - VISA:
+  1. User taps VISA button
+  2. Frontend opens /payments/visa route
+  3. Proxy generates branded iframe/webview URL
+  4. User completes payment on Fanytel (branded header)
+  5. On completion: redirect back to app
+  6. Balance auto-refreshes
+
+BUY CREDITS - CRYPTO:
+  1. User taps CRYPTO button
+  2. Frontend opens CRYPTO_WALLET_URL in new tab
+  3. QR code always visible in Account tab
+  4. User sends crypto to wallet address
+  5. After confirmation: balance updates (may take 10-30 min)
+
+================================================================================
+7. ERROR HANDLING & STATE MANAGEMENT
+================================================================================
+
+Loading States:
+  - Full screen: centered spinner with "Loading..." text
+  - Button: spinner replaces icon, text changes to "Loading..."
+  - List: skeleton items (3-5 placeholder rows)
+  - Card: pulse animation on entire card
+
+Empty States:
+  - History: Phone icon + "No call history yet"
+  - SMS: MessageSquare icon + "No messages yet"
+  - Balance: "$0.00" displayed normally
+
+Error States:
+  - Network error: Toast "Connection failed. Please try again."
+  - Auth error: Toast "Session expired. Please restart."
+  - API error: Toast with specific message from server
+  - Validation error: Inline text below input field
+
+Retry/Backoff Strategy:
+  - Initial retry: immediate
+  - Second retry: 2 seconds
+  - Third retry: 5 seconds
+  - Max retries: 3
+  - After max: show error state with "Retry" button
+
+Offline Behavior:
+  - UI shell always available (service worker cached)
+  - Network actions show "You're offline" toast
+  - No queued actions (all real-time)
+  - Reconnection: automatic retry of last failed action
+
+================================================================================
+8. PERFORMANCE & QUALITY CRITERIA
+================================================================================
+
+FPS Target: 60fps for all animations and transitions
+
+Bundle Size Guidance:
+  - Initial JS: < 150KB gzipped
+  - CSS: < 20KB gzipped
+  - Total initial load: < 200KB
+
+Lazy Loading Strategy:
+  - Route-based code splitting (each tab = separate chunk)
+  - Images: native lazy loading attribute
+  - Heavy components (modals): dynamic import
+
+Image/Asset Optimization:
+  - SVG for icons (inline via Lucide)
+  - PNG for app icons (multiple sizes)
+  - No raster images in main UI
+  - QR code loaded from external URL (cached)
+
+Shadow Performance:
+  - Use CSS box-shadow (GPU accelerated)
+  - Avoid filter: drop-shadow on large elements
+  - Shadow transitions only on transform changes
+  - Reduce shadow blur on low-end devices (prefers-reduced-motion)
+
+================================================================================
+9. PWA SPECIFICS
+================================================================================
+
+Manifest Entries:
+  name: "MEZGEBU PHONE"
+  short_name: "MEZGEBU"
+  description: "Premium calling and messaging experience"
+  start_url: "/"
+  display: "standalone"
+  background_color: "#0a0a0a"
+  theme_color: "#0a0a0a"
+  orientation: "portrait"
+  icons:
+    - 192x192 PNG (any, maskable)
+    - 512x512 PNG (any, maskable)
+
+Service Worker Strategy:
+  Precache Shell:
+    - index.html
+    - main CSS bundle
+    - main JS bundle
+    - app icons
+    - fonts (DM Sans)
+  
+  Runtime Caching:
+    - API responses: network-first, cache fallback (5 min TTL)
+    - Static assets: cache-first
+    - QR images: stale-while-revalidate
+
+Install Prompts:
+  - Show custom install banner after 3rd visit
+  - Banner dismissable, shows again after 7 days
+  - iOS: show "Add to Home Screen" instructions
+
+App-like Behaviors:
+  - No address bar in standalone mode
+  - Status bar matches theme color
+  - Splash screen with app icon
+  - Orientation locked to portrait
+
+================================================================================
+10. DEPLOYMENT & RITUALS
+================================================================================
+
+Environment Setup:
+  1. Clone repository
+  2. Copy .env.example to .env
+  3. Fill in environment variables:
+     - FANYTEL_BASE=https://webdialer.fanytel.com/
+     - FANYTEL_EMAIL=your-email
+     - FANYTEL_PASSWORD=your-password
+     - CRYPTO_WALLET_URL=https://your-wallet-url
+     - CRYPTO_QR_IMAGE_URL=https://your-qr-url
+     - SESSION_SECRET=random-32-char-string
+  4. npm install
+  5. npm run dev (development)
+  6. npm run build (production)
+
+Build/Deploy Steps:
+  1. Run npm run build
+  2. Output in /dist folder
+  3. Deploy /dist to static hosting (Vercel, Netlify, etc.)
+  4. Configure environment variables in hosting platform
+  5. Set up proxy server separately (Node.js/Express)
+  6. Point API routes to proxy server
+
+CI/CD Notes:
+  - Build on push to main branch
+  - Run tests before build
+  - Deploy to staging on PR merge
+  - Deploy to production on release tag
+  - Environment variables injected at build time (public) and runtime (private)
+
+Update Rituals:
+
+Changing Endpoints:
+  1. Update .env on proxy server
+  2. Restart proxy server
+  3. No frontend changes needed (routes unchanged)
+
+Changing Tokens/Credentials:
+  1. Update .env on proxy server
+  2. Restart proxy server
+  3. Existing sessions invalidated
+  4. Users prompted to re-authenticate
+
+Changing Branding Assets:
+  1. Replace icon files in /public
+  2. Update manifest.json if sizes change
+  3. Run npm run build
+  4. Deploy new build
+  5. Service worker updates on next visit
+
+================================================================================
+11. ACCEPTANCE CRITERIA
+================================================================================
+
+Branding:
+  [✓] No Fanytel logos or branding anywhere in UI
+  [✓] All visible text references MEZGEBU only
+  [✓] Favicon and app icons are MEZGEBU branded
+
+Proxy Routes:
+  [ ] POST /auth/start returns session token
+  [ ] GET /balance returns current balance
+  [ ] POST /call/start initiates call
+  [ ] GET /call/status returns call state
+  [ ] GET /history returns call/SMS records
+  [ ] POST /sms/send sends message
+  [ ] GET /payments/visa redirects to branded payment
+  [ ] GET /payments/crypto returns wallet info
+
+Shadow Color Usage:
+  [✓] All buttons have shadow-signature applied
+  [✓] All cards/frames have shadow-signature applied
+  [✓] All icons have icon-shadow (drop-shadow) applied
+  [✓] Logo placeholder has shadow-signature applied
+  [✓] QR placeholder has shadow-signature applied
+
+Accessibility:
+  [✓] Color contrast meets WCAG AA (4.5:1 minimum)
+  [✓] All interactive elements have focus states
+  [✓] Touch targets >= 44x44px
+  [✓] Semantic HTML structure
+  [✓] ARIA labels on icon-only buttons
+
+Performance:
+  [✓] 60fps animations
+  [ ] Initial load < 200KB gzipped
+  [ ] LCP < 2.5s
+  [ ] FID < 100ms
+  [ ] CLS < 0.1
+
+PWA:
+  [✓] Valid manifest.json
+  [ ] Service worker registered
+  [ ] Installable on mobile
+  [ ] Works offline (UI shell)
+
+================================================================================
+                              END OF SPECIFICATION
+================================================================================
