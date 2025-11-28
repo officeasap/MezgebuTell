@@ -1,6 +1,8 @@
 import { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Phone, History, MessageSquare, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 interface AppShellProps {
   children: ReactNode;
@@ -8,21 +10,25 @@ interface AppShellProps {
   onTabChange: (tab: "call" | "history" | "sms" | "account") => void;
 }
 
-const tabs = [
-  { id: "call" as const, label: "CALL", icon: Phone },
-  { id: "history" as const, label: "HISTORY", icon: History },
-  { id: "sms" as const, label: "SMS", icon: MessageSquare },
-  { id: "account" as const, label: "ACCOUNT", icon: User },
-];
-
 export function AppShell({ children, activeTab, onTabChange }: AppShellProps) {
+  const { t } = useTranslation();
+
+  const tabs = [
+    { id: "call" as const, label: t('tabs.call'), icon: Phone },
+    { id: "history" as const, label: t('tabs.history'), icon: History },
+    { id: "sms" as const, label: t('tabs.sms'), icon: MessageSquare },
+    { id: "account" as const, label: t('tabs.account'), icon: User },
+  ];
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="px-4 py-4 text-center border-b border-border/30">
-        <h1 className="text-xl font-bold tracking-tight text-foreground">
-          MEZGEBU PHONE
+      <header className="px-4 py-3 border-b border-border/30 flex items-center justify-between">
+        <div className="w-20" /> {/* Spacer for centering */}
+        <h1 className="text-lg font-bold tracking-tight text-foreground">
+          {t('app.name')}
         </h1>
+        <LanguageToggle />
       </header>
 
       {/* Tab Navigation */}
@@ -46,15 +52,15 @@ export function AppShell({ children, activeTab, onTabChange }: AppShellProps) {
         <div className="animate-fade-in">{children}</div>
       </main>
 
-      {/* Footer Navigation (redundancy) */}
-      <footer className="px-4 py-3 border-t border-border/30 bg-background-secondary/50">
+      {/* Footer Navigation (mobile-optimized) */}
+      <footer className="px-4 py-3 border-t border-border/30 bg-background-secondary/50 safe-area-bottom">
         <div className="flex justify-around">
           {tabs.slice(0, 3).map((tab) => (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                "flex flex-col items-center gap-1 text-muted-foreground transition-colors",
+                "flex flex-col items-center gap-1 text-muted-foreground transition-colors min-w-[64px] min-h-[44px] justify-center",
                 activeTab === tab.id && "text-primary"
               )}
             >

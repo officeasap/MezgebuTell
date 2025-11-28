@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { MessageSquare, Plus, Send, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { MessageSquare, Plus, X, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
-interface SMSMessage {
+interface SMSRecord {
   id: string;
   number: string;
   message: string;
@@ -11,126 +14,163 @@ interface SMSMessage {
   type: "sent" | "received";
 }
 
-const mockMessages: SMSMessage[] = [
-  { id: "1", number: "+1 555 0123", message: "Hey, are you available for a call?", timestamp: "Today, 2:30 PM", type: "sent" },
-  { id: "2", number: "+1 555 0456", message: "Thanks for calling back!", timestamp: "Today, 11:15 AM", type: "received" },
-  { id: "3", number: "+1 555 0789", message: "Meeting rescheduled to 3 PM", timestamp: "Yesterday, 8:45 PM", type: "sent" },
+// Mock data
+const mockSMS: SMSRecord[] = [
+  { id: "1", number: "+1 555 0123", message: "Hey, are you available for a call?", timestamp: "10:30 AM", type: "received" },
+  { id: "2", number: "+1 555 0456", message: "Meeting confirmed for tomorrow.", timestamp: "9:15 AM", type: "sent" },
+  { id: "3", number: "+1 555 0789", message: "Please call me back when you can.", timestamp: "Yesterday", type: "received" },
 ];
 
 export function SMSView() {
+  const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toNumber, setToNumber] = useState("");
-  const [messageText, setMessageText] = useState("");
+  const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
 
   const handleSend = async () => {
-    if (!toNumber || !messageText) return;
+    if (!toNumber || !message) return;
+    
     setIsSending(true);
-    // Simulate API call - in production this would call POST /sms/send
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // Simulate send
+    await new Promise(resolve => setTimeout(resolve, 1000));
     setIsSending(false);
     setIsModalOpen(false);
     setToNumber("");
-    setMessageText("");
+    setMessage("");
   };
 
+  if (mockSMS.length === 0 && !isModalOpen) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4">
+        <div className="w-16 h-16 rounded-full bg-secondary/30 flex items-center justify-center mb-4">
+          <MessageSquare className="w-8 h-8 text-muted-foreground icon-shadow" />
+        </div>
+        <p className="text-muted-foreground text-center">{t('sms.empty')}</p>
+        <p className="text-sm text-muted-foreground/60 text-center mt-1">
+          {t('sms.emptySubtitle')}
+        </p>
+        <Button
+          variant="default"
+          className="mt-6"
+          onClick={() => setIsModalOpen(true)}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          {t('sms.newSms')}
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <div className="px-4 py-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-foreground">Messages</h2>
+    <div className="p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-foreground">{t('sms.title')}</h2>
         <Button
           variant="default"
           size="sm"
           onClick={() => setIsModalOpen(true)}
-          className="gap-2"
         >
-          <Plus className="w-4 h-4" />
-          New SMS
+          <Plus className="w-4 h-4 mr-1" />
+          {t('sms.newSms')}
         </Button>
       </div>
 
-      {mockMessages.length === 0 ? (
-        <div className="frame-glossy p-8 text-center">
-          <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-3 icon-shadow" />
-          <p className="text-muted-foreground">No messages yet</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {mockMessages.map((sms, index) => (
-            <div
-              key={sms.id}
-              className="frame-glossy p-4 animate-fade-in"
-              style={{ animationDelay: `${index * 0.05}s` }}
-            >
-              <div className="flex items-start justify-between mb-2">
-                <p className="text-foreground font-medium">{sms.number}</p>
-                <span className={cn(
-                  "text-xs px-2 py-0.5 rounded-full",
-                  sms.type === "sent" ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground"
-                )}>
-                  {sms.type}
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{sms.message}</p>
-              <p className="text-xs text-muted-foreground/60">{sms.timestamp}</p>
+      {/* SMS List */}
+      <div className="space-y-2">
+        {mockSMS.map((sms) => (
+          <div
+            key={sms.id}
+            className="frame-glossy rounded-xl p-4 min-h-[72px]"
+          >
+            <div className="flex items-start justify-between mb-2">
+              <p className="font-medium text-foreground">{sms.number}</p>
+              <span className={cn(
+                "text-xs px-2 py-0.5 rounded-full",
+                sms.type === "sent" ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground"
+              )}>
+                {t(`sms.${sms.type}`)}
+              </span>
             </div>
-          ))}
-        </div>
-      )}
+            <p className="text-sm text-muted-foreground line-clamp-2">{sms.message}</p>
+            <p className="text-xs text-muted-foreground/60 mt-2">{sms.timestamp}</p>
+          </div>
+        ))}
+      </div>
 
       {/* New SMS Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md bg-card border border-border rounded-t-2xl shadow-signature-lg animate-slide-up">
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h3 className="text-lg font-semibold text-foreground">New Message</h3>
+        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+          <div 
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+            onClick={() => setIsModalOpen(false)}
+          />
+          <div className="relative z-10 w-full max-w-md bg-card border border-border rounded-t-2xl sm:rounded-2xl shadow-signature-lg animate-slide-up safe-area-bottom">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-border/30">
+              <h3 className="text-lg font-semibold text-foreground">{t('sms.newSms')}</h3>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
               >
-                <X className="w-5 h-5 icon-shadow" />
+                <X className="w-4 h-4" />
               </button>
             </div>
+
+            {/* Modal Body */}
             <div className="p-4 space-y-4">
-              <div>
-                <label className="text-sm text-muted-foreground mb-1 block">To</label>
-                <input
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">{t('sms.to')}</label>
+                <Input
                   type="tel"
+                  placeholder={t('sms.toPlaceholder')}
                   value={toNumber}
                   onChange={(e) => setToNumber(e.target.value)}
-                  placeholder="+1 555 0000"
-                  className="w-full bg-input border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="bg-background-secondary border-border"
                 />
               </div>
-              <div>
-                <label className="text-sm text-muted-foreground mb-1 block">Message</label>
-                <textarea
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  placeholder="Type your message..."
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-foreground">{t('sms.message')}</label>
+                  <span className="text-xs text-muted-foreground">
+                    {t('sms.charCount', { count: message.length })}
+                  </span>
+                </div>
+                <Textarea
+                  placeholder={t('sms.messagePlaceholder')}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value.slice(0, 160))}
+                  maxLength={160}
                   rows={4}
-                  className="w-full bg-input border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                  className="bg-background-secondary border-border resize-none"
                 />
               </div>
-              <Button
-                variant="default"
-                size="lg"
-                onClick={handleSend}
-                disabled={!toNumber || !messageText || isSending}
-                className="w-full gap-2"
-              >
-                {isSending ? (
-                  <>
-                    <span className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-5 h-5" />
-                    Send Message
-                  </>
-                )}
-              </Button>
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  {t('sms.cancel')}
+                </Button>
+                <Button
+                  variant="default"
+                  className="flex-1"
+                  onClick={handleSend}
+                  disabled={!toNumber || !message || isSending}
+                >
+                  {isSending ? (
+                    <span className="animate-pulse">{t('sms.send')}</span>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      {t('sms.send')}
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

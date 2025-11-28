@@ -1,0 +1,79 @@
+{
+  "app": {
+    "name": "መዝገቡ ስልክ",
+    "tagline": "ፕሪሚየም ድምጽ እና መልእክት"
+  },
+  "welcome": {
+    "subtitle": "የእርስዎ ሉዓላዊ የግንኙነት መግቢያ",
+    "terms": "ውሎቻችንን ለመቀበል ጠቅ ያድርጉ",
+    "start": "ጀምር",
+    "connecting": "በመገናኘት ላይ...",
+    "footer": "ደህንነቱ የተጠበቀ • የግል • ሉዓላዊ"
+  },
+  "balance": {
+    "label": "ያለው ቀሪ ሂሳብ",
+    "yourNumber": "የእርስዎ ቁጥር"
+  },
+  "tabs": {
+    "call": "ደውል",
+    "history": "ታሪክ",
+    "sms": "መልእክት",
+    "account": "መለያ"
+  },
+  "dialpad": {
+    "placeholder": "ቁጥር ያስገቡ",
+    "recentCalls": "የቅርብ ጥሪዎች"
+  },
+  "history": {
+    "title": "የጥሪ ታሪክ",
+    "empty": "እስካሁን የጥሪ ታሪክ የለም",
+    "emptySubtitle": "የቅርብ ጥሪዎችዎ እዚህ ይታያሉ",
+    "today": "ዛሬ",
+    "incoming": "ገቢ",
+    "outgoing": "ወጪ",
+    "missed": "ያመለጠ"
+  },
+  "sms": {
+    "title": "መልእክቶች",
+    "newSms": "አዲስ መልእክት",
+    "empty": "እስካሁን መልእክት የለም",
+    "emptySubtitle": "መልእክቶችዎ እዚህ ይታያሉ",
+    "to": "ለ",
+    "toPlaceholder": "የስልክ ቁጥር ያስገቡ",
+    "message": "መልእክት",
+    "messagePlaceholder": "መልእክትዎን ይጻፉ...",
+    "charCount": "{{count}}/160",
+    "send": "መልእክት ላክ",
+    "cancel": "ሰርዝ",
+    "sent": "ተልኳል",
+    "received": "ደርሷል"
+  },
+  "account": {
+    "title": "ክሬዲት ይግዙ",
+    "subtitle": "ወደ መለያዎ ገንዘብ ይጨምሩ",
+    "visa": "ቪዛ",
+    "crypto": "ክሪፕቶ",
+    "qrLabel": "በክሪፕቶ ለመክፈል QR ይቃኙ",
+    "note": "ክፍያዎች በደህንነት ይከናወናሉ። የቪዛ ክፍያዎች ወደ የክፍያ አቅራቢያችን ይመራሉ። የክሪፕቶ ክፍያዎች ለማረጋገጥ ከ10-30 ደቂቃ ሊወስድ ይችላል።"
+  },
+  "incoming": {
+    "call": "ገቢ ጥሪ",
+    "sms": "አዲስ መልእክት",
+    "accept": "ተቀበል",
+    "reject": "ውድቅ አድርግ",
+    "view": "ተመልከት",
+    "dismiss": "ዝጋ"
+  },
+  "toast": {
+    "welcome": "እንኳን ወደ መዝገቡ ስልክ በደህና መጡ",
+    "welcomeDesc": "አሁን ተገናኝተዋል እና ጥሪዎችን ለማድረግ ዝግጁ ነዎት።",
+    "calling": "ጥሪ በማድረግ ላይ",
+    "callingDesc": "{{number}} በመደወል ላይ...",
+    "readyToCall": "ለመደወል ዝግጁ",
+    "readyToCallDesc": "ዳይል ፓድ ለ {{number}} ዝግጁ ነው",
+    "smsSent": "መልእክት ተልኳል",
+    "smsSentDesc": "መልእክትዎ ተላልፏል።",
+    "smsError": "መላክ አልተሳካም",
+    "smsErrorDesc": "እባክዎ እንደገና ይሞክሩ።"
+  }
+}

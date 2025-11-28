@@ -1,0 +1,79 @@
+{
+  "app": {
+    "name": "MEZGEBU PHONE",
+    "tagline": "Premium Voice & Messaging"
+  },
+  "welcome": {
+    "subtitle": "Your sovereign communication gateway",
+    "terms": "Click to accept our terms",
+    "start": "START",
+    "connecting": "Connecting...",
+    "footer": "Secure • Private • Sovereign"
+  },
+  "balance": {
+    "label": "Available Balance",
+    "yourNumber": "Your Number"
+  },
+  "tabs": {
+    "call": "CALL",
+    "history": "HISTORY",
+    "sms": "SMS",
+    "account": "ACCOUNT"
+  },
+  "dialpad": {
+    "placeholder": "Enter number",
+    "recentCalls": "Recent Calls"
+  },
+  "history": {
+    "title": "Call History",
+    "empty": "No call history yet",
+    "emptySubtitle": "Your recent calls will appear here",
+    "today": "Today",
+    "incoming": "Incoming",
+    "outgoing": "Outgoing",
+    "missed": "Missed"
+  },
+  "sms": {
+    "title": "Messages",
+    "newSms": "New SMS",
+    "empty": "No messages yet",
+    "emptySubtitle": "Your messages will appear here",
+    "to": "To",
+    "toPlaceholder": "Enter phone number",
+    "message": "Message",
+    "messagePlaceholder": "Type your message...",
+    "charCount": "{{count}}/160",
+    "send": "Send Message",
+    "cancel": "Cancel",
+    "sent": "Sent",
+    "received": "Received"
+  },
+  "account": {
+    "title": "Buy Credits",
+    "subtitle": "Add funds to your account",
+    "visa": "VISA",
+    "crypto": "CRYPTO",
+    "qrLabel": "Scan QR to pay with crypto",
+    "note": "Payments are processed securely. VISA payments redirect to our payment provider. Crypto payments may take 10-30 minutes to confirm."
+  },
+  "incoming": {
+    "call": "Incoming Call",
+    "sms": "New Message",
+    "accept": "Accept",
+    "reject": "Reject",
+    "view": "View",
+    "dismiss": "Dismiss"
+  },
+  "toast": {
+    "welcome": "Welcome to MEZGEBU PHONE",
+    "welcomeDesc": "You're now connected and ready to make calls.",
+    "calling": "Initiating call",
+    "callingDesc": "Calling {{number}}...",
+    "readyToCall": "Ready to call",
+    "readyToCallDesc": "Dial pad ready for {{number}}",
+    "smsSent": "Message sent",
+    "smsSentDesc": "Your message has been delivered.",
+    "smsError": "Failed to send",
+    "smsErrorDesc": "Please try again."
+  }
+}
