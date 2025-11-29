@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Phone, Shield, Loader2 } from "lucide-react";
+import { Shield, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LanguageToggle } from "@/components/LanguageToggle";
@@ -28,57 +28,74 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
         <LanguageToggle />
       </div>
 
-      {/* Logo Placeholder */}
+      {/* Logo Frame with Official MEZGEBU Logo */}
       <div className="w-32 h-32 rounded-2xl border-2 border-dashed border-border flex items-center justify-center mb-8 shadow-signature-lg">
-        <Phone className="w-16 h-16 text-primary icon-shadow" />
+        <img
+          src="/meZgebu1.png"
+          alt="MEZGEBU Logo"
+          className="w-full h-full object-contain"
+        />
       </div>
 
       {/* Title */}
       <h1 className="text-3xl font-bold text-foreground tracking-tight mb-2 text-center">
-        {t('app.name')}
+        {t("app.name")}
       </h1>
       <p className="text-muted-foreground text-center mb-8 max-w-xs">
-        {t('welcome.subtitle')}
+        {t("welcome.subtitle")}
       </p>
 
-      {/* Terms Checkbox */}
-      <div className="flex items-center space-x-3 mb-6">
-        <Checkbox
-          id="terms"
-          checked={accepted}
-          onCheckedChange={(checked) => setAccepted(checked === true)}
-          className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-        />
-        <label
-          htmlFor="terms"
-          className="text-sm text-muted-foreground cursor-pointer select-none"
-        >
-          {t('welcome.terms')}
-        </label>
-      </div>
+     {/* Terms Checkbox */}
+<div className="flex items-center space-x-3 mb-6">
+  <Checkbox
+    id="terms"
+    checked={accepted}
+    onCheckedChange={(checked) => setAccepted(checked === true)}
+    className="border-border 
+               data-[state=checked]:bg-[#2c2a2c] 
+               data-[state=checked]:border-[#2c2a2c] 
+               shadow-[0_2px_6px_#d3f5da]"
+  />
+  <label
+    htmlFor="terms"
+    className="text-sm text-muted-foreground cursor-pointer select-none"
+  >
+    {t("welcome.terms")}
+  </label>
+</div>
 
-      {/* Start Button - STABLE, no animations */}
-      <Button
-        variant="hero"
-        size="lg"
-        onClick={handleStart}
-        disabled={!accepted || isLoading}
-        className="w-full max-w-xs"
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            {t('welcome.connecting')}
-          </>
-        ) : (
-          t('welcome.start')
-        )}
-      </Button>
+{/* Start Button - STABLE, sovereign styling */}
+<Button
+  variant="hero"
+  size="lg"
+  onClick={handleStart}
+  disabled={!accepted || isLoading}
+  className="w-full max-w-xs 
+             bg-[#2c2a2c] 
+             text-white 
+             rounded-[18px] 
+             shadow-[0_4px_10px_#d3f5da] 
+             hover:bg-[#2c2a2c] 
+             focus:ring-0 
+             active:scale-100 
+             transition-none"
+>
+  {isLoading ? (
+    <>
+      <Loader2 className="w-5 h-5 mr-2" /> {/* removed animate-spin */}
+      {t("welcome.connecting")}
+    </>
+  ) : (
+    t("welcome.start")
+  )}
+</Button>
+
+
 
       {/* Footer */}
       <div className="mt-12 flex items-center gap-2 text-xs text-muted-foreground">
         <Shield className="w-4 h-4 icon-shadow" />
-        <span>{t('welcome.footer')}</span>
+        <span>{t("welcome.footer")}</span>
       </div>
     </div>
   );

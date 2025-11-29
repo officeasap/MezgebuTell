@@ -7,12 +7,15 @@ import { DashboardNumber } from "@/components/home/DashboardNumber";
 import { DialPad } from "@/components/call/DialPad";
 import { CallHistory } from "@/components/history/CallHistory";
 import { SMSView } from "@/components/sms/SMSView";
-import { BuyCredits } from "@/components/account/BuyCredits";
 import { IncomingCallModal } from "@/components/incoming/IncomingCallModal";
 import { IncomingSMSNotification } from "@/components/incoming/IncomingSMSNotification";
 import { useToast } from "@/hooks/use-toast";
 
-type Tab = "call" | "history" | "sms" | "account";
+// 🔑 Import service layer functions that talk to JWT-protected backend
+import { makeCall, getIncomingCalls } from "@/services/call";
+import { sendSMS } from "@/services/sms";
+
+type Tab = "call" | "history" | "sms";
 
 const DASHBOARD_NUMBER = "+1 579 900 5133";
 
@@ -20,7 +23,7 @@ const Index = () => {
   const { t } = useTranslation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("call");
-  const [balance] = useState("$0.06");
+  const [balance, setBalance] = useState("$0.06");
   const { toast } = useToast();
 
   // Incoming call state
@@ -41,62 +44,41 @@ const Index = () => {
   const handleStart = () => {
     setIsAuthenticated(true);
     toast({
-      title: t('toast.welcome'),
-      description: t('toast.welcomeDesc'),
+      title: t("toast.welcome"),
+      description: t("toast.welcomeDesc"),
     });
   };
 
-  const handleCall = (number: string) => {
+  // ✅ Outbound call using JWT-protected backend
+  const handleCall = async (number: string) => {
     toast({
-      title: t('toast.calling'),
-      description: t('toast.callingDesc', { number }),
+      title: t("toast.calling"),
+      description: t("toast.callingDesc", { number }),
     });
+    try {
+      const result = await makeCall(number); // calls /api/call/out
+      console.log("Call initiated:", result);
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message });
+    }
   };
 
   const handleCallBack = (number: string) => {
     setActiveTab("call");
     toast({
-      title: t('toast.readyToCall'),
-      description: t('toast.readyToCallDesc', { number }),
+      title: t("toast.readyToCall"),
+      description: t("toast.readyToCallDesc", { number }),
     });
   };
 
-  // Demo: Simulate incoming call after 10 seconds
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    
-    const timer = setTimeout(() => {
-      setIncomingCall({
-        isOpen: true,
-        callerName: "John Doe",
-        callerNumber: "+1 555 0999"
-      });
-    }, 10000);
-
-    return () => clearTimeout(timer);
-  }, [isAuthenticated]);
-
-  // Demo: Simulate incoming SMS after 15 seconds
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    
-    const timer = setTimeout(() => {
-      setIncomingSMS({
-        isOpen: true,
-        senderName: "Jane Smith",
-        senderNumber: "+1 555 0888",
-        messagePreview: "Hi! Just wanted to check if you're free for a meeting tomorrow at 3pm?"
-      });
-    }, 15000);
-
-    return () => clearTimeout(timer);
-  }, [isAuthenticated]);
-
+  // ✅ Accept incoming call
   const handleAcceptCall = () => {
     setIncomingCall({ isOpen: false, callerNumber: "" });
     toast({
       title: "Call connected",
-      description: `Connected with ${incomingCall.callerName || incomingCall.callerNumber}`,
+      description: `Connected with ${
+        incomingCall.callerName || incomingCall.callerNumber
+      }`,
     });
   };
 
@@ -104,6 +86,7 @@ const Index = () => {
     setIncomingCall({ isOpen: false, callerNumber: "" });
   };
 
+  // ✅ SMS handling
   const handleViewSMS = () => {
     setIncomingSMS({ isOpen: false, senderNumber: "", messagePreview: "" });
     setActiveTab("sms");
@@ -112,6 +95,28 @@ const Index = () => {
   const handleDismissSMS = () => {
     setIncomingSMS({ isOpen: false, senderNumber: "", messagePreview: "" });
   };
+
+  // ✅ Poll incoming calls (JWT-protected /api/call/in)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const calls = await getIncomingCalls();
+        if (calls.length > 0) {
+          setIncomingCall({
+            isOpen: true,
+            callerNumber: calls[0].callerNumber,
+            callerName: calls[0].callerName,
+          });
+        }
+      } catch (err) {
+        console.error("Incoming call check failed:", err);
+      }
+    }, 5000); // poll every 5s
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
 
   if (!isAuthenticated) {
     return <WelcomeScreen onStart={handleStart} />;
@@ -124,11 +129,10 @@ const Index = () => {
           <DashboardNumber number={DASHBOARD_NUMBER} />
         </div>
         <BalanceCard balance={balance} />
-        
+
         {activeTab === "call" && <DialPad onCall={handleCall} />}
         {activeTab === "history" && <CallHistory onCallBack={handleCallBack} />}
         {activeTab === "sms" && <SMSView />}
-        {activeTab === "account" && <BuyCredits />}
       </AppShell>
 
       {/* Incoming Call Modal */}
@@ -154,3 +158,4 @@ const Index = () => {
 };
 
 export default Index;
+

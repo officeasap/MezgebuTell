@@ -1,25 +1,24 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-import en from './locales/en.json';
-import am from './locales/am.json';
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import en from "./locales/en.json";
+import am from "./locales/am.json";
 
 const resources = {
   en: { translation: en },
-  am: { translation: am }
+  am: { translation: am },
 };
 
 // Get saved language or default to English
-const savedLanguage = localStorage.getItem('mezgebu-language') || 'en';
+const savedLanguage = localStorage.getItem("mezgebu-language") || "en";
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources,
-    lng: savedLanguage,
-    fallbackLng: 'en',
-    interpolation: {
-      escapeValue: false
-    }
-  });
+i18n.use(initReactI18next).init({
+  resources,
+  lng: savedLanguage,
+  fallbackLng: "en",
+  interpolation: {
+    escapeValue: false,
+  },
+});
 
 export default i18n;
+

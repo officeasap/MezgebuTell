@@ -1,0 +1,32 @@
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    const { toNumber } = req.body;
+    const cookies = req.headers.cookie || "";
+    const tokenMatch = cookies.match(/fanytelToken=([^;]+)/);
+    const fanytelToken = tokenMatch ? tokenMatch[1] : null;
+
+    if (!fanytelToken) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const response = await fetch("https://fanytel.com/api/call/start", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${fanytelToken}`, // ✅ use token from cookie
+      },
+      body: JSON.stringify({ to: toNumber }),
+    });
+
+    const data = await response.json();
+    return res.status(200).json(data);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "call_error" });
+  }
+}
+
