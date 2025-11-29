@@ -1,5 +1,6 @@
-// api/sms/list.js
-export default async function handler(req, res) {
+import type { NextApiRequest, NextApiResponse } from "next";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -22,8 +23,9 @@ export default async function handler(req, res) {
 
     // Return standardized list to frontend
     return res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "SMS_LIST_FAILED", details: err.message });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(message);
+    return res.status(500).json({ error: "SMS_LIST_FAILED", details: message });
   }
 }

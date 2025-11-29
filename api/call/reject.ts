@@ -1,12 +1,13 @@
-// api/call/reject.js
-export default async function handler(req, res) {
+import type { NextApiRequest, NextApiResponse } from "next";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const { callId } = req.body;
-    const fanytelToken = process.env.FANYTEL_TOKEN; // JWT from .env
+    const { callId } = req.body as { callId: string };
+    const fanytelToken = process.env.FANYTEL_TOKEN;
 
     if (!fanytelToken) {
       return res.status(401).json({ error: "Not authenticated" });
@@ -22,9 +23,9 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    return res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "CALL_REJECT_FAILED", details: err.message });
+    return res.status(response.status).json(data);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return res.status(500).json({ error: "CALL_REJECT_FAILED", details: message });
   }
 }
