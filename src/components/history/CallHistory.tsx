@@ -45,6 +45,7 @@ export function CallHistory({ onCallBack }: CallHistoryProps) {
           <Phone className="w-8 h-8 text-muted-foreground icon-shadow" />
         </div>
         <p className="text-muted-foreground text-center">{t("history.empty")}</p>
+        
         <p className="text-sm text-muted-foreground/60 text-center mt-1">
           {t("history.emptySubtitle")}
         </p>

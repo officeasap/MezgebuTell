@@ -17,6 +17,7 @@ export async function getIncomingCalls() {
   const res = await fetch("/api/call/in");
   if (!res.ok) throw new Error(`Incoming call fetch failed: ${res.status}`);
   return res.json();
+
 }
 
 // Accept incoming call
